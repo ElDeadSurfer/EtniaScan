@@ -318,6 +318,36 @@ function FondoDecorativo() {
   )
 }
 
+function NavApp({ pantalla, onInicio }) {
+  const pasoActivo =
+    pantalla === 'carga' ? 'Paso 1' : pantalla === 'resultados' ? 'Paso 2' : 'Bienvenida'
+
+  return (
+    <nav
+      className="fixed inset-x-0 top-0 z-40 border-b border-cobre/25 bg-oscuro/90 backdrop-blur-md"
+      aria-label="Navegación principal"
+    >
+      <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <div className="min-w-0">
+          <p className="truncate font-display text-lg text-arena-light sm:text-xl">
+            Etnia<span className="text-cobre">Scan</span>
+          </p>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-arena-dark sm:text-xs">
+            {pasoActivo}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onInicio}
+          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-cobre/40 bg-cobre-muted px-5 py-2.5 text-sm font-medium text-arena-light transition hover:border-cobre hover:bg-cobre/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-cobre-light"
+        >
+          Inicio
+        </button>
+      </div>
+    </nav>
+  )
+}
+
 function ModalInformativo({ abierto, onCerrar }) {
   useEffect(() => {
     if (!abierto) return
@@ -583,6 +613,25 @@ function ConsejosCarga() {
   )
 }
 
+function PiePrivacidad() {
+  return (
+    <footer className="mt-8 w-full border-t border-arena-dark/15 pt-5 sm:mt-10">
+      <p className="flex min-w-0 gap-2 text-[11px] leading-relaxed text-slate-400 sm:gap-2.5 sm:text-xs sm:leading-relaxed">
+        <span className="shrink-0 text-[10px] opacity-90 sm:text-xs" aria-hidden="true">
+          🔒
+        </span>
+        <span className="min-w-0">
+          <span className="font-medium text-slate-300">Privacidad Total:</span> EtniaScan
+          es un prototipo interactivo de procesamiento puramente local. No almacenamos,
+          guardamos ni compartimos tus fotos ni tus resultados en ningún servidor. Al
+          cerrar o refrescar esta pestaña, toda la información se elimina
+          permanentemente de tu dispositivo.
+        </span>
+      </p>
+    </footer>
+  )
+}
+
 function PantallaCarga({
   imagen,
   preview,
@@ -720,6 +769,8 @@ function PantallaCarga({
           Regresar
         </button>
       </div>
+
+      <PiePrivacidad />
     </main>
   )
 }
@@ -940,16 +991,27 @@ function App() {
     if (inputRef.current) inputRef.current.value = ''
   }
 
+  const irArriba = () => {
+    document.getElementById('root')?.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const reiniciarEscaneo = () => {
+    setMostrarInfo(false)
+    setAnalizando(false)
+    limpiarImagen()
+    setPantalla('carga')
+    irArriba()
+  }
+
   const onRegresar = () => {
     setPantalla('inicio')
     setAnalizando(false)
     limpiarImagen()
+    irArriba()
   }
 
   const onVolverEmpezar = () => {
-    setPantalla('inicio')
-    setAnalizando(false)
-    limpiarImagen()
+    reiniciarEscaneo()
   }
 
   const onAnalizar = () => {
@@ -964,14 +1026,14 @@ function App() {
   const centrado = pantalla === 'inicio'
 
   return (
-    <div
-      className={`relative flex min-h-screen w-full flex-col overflow-x-hidden bg-oscuro px-4 py-8 font-sans text-arena sm:px-6 sm:py-12 ${
-        centrado
-          ? 'items-center justify-center'
-          : 'items-center justify-start pt-6 pb-10 sm:pt-16 md:pt-20'
-      }`}
-    >
-      <FondoDecorativo />
+    <>
+      <NavApp pantalla={pantalla} onInicio={reiniciarEscaneo} />
+      <div
+        className={`relative flex min-h-full w-full flex-col overflow-x-hidden bg-oscuro px-4 pb-10 pt-[4.75rem] font-sans text-arena sm:px-6 sm:pt-20 sm:pb-12 ${
+          centrado ? 'items-center justify-center' : 'items-center justify-start'
+        }`}
+      >
+        <FondoDecorativo />
 
       {pantalla === 'inicio' && (
         <PantallaInicio
@@ -1007,7 +1069,8 @@ function App() {
       {pantalla === 'resultados' && (
         <PantallaResultados preview={preview} onVolverEmpezar={onVolverEmpezar} />
       )}
-    </div>
+      </div>
+    </>
   )
 }
 
