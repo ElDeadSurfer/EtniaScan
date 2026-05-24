@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply m-0 overflow-x-hidden antialiased;
+  }
+
+  #root {
+    @apply min-h-screen w-full overflow-x-hidden;
+  }
+}
+
+@layer utilities {
+  @keyframes laser-scan {
+    0%,
+    100% {
+      top: 6%;
+    }
+    50% {
+      top: 94%;
+    }
+  }
+
+  @keyframes puntos-carga {
+    0%,
+    20% {
+      opacity: 0.2;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.2;
+    }
+  }
+
+  .animate-laser-scan {
+    animation: laser-scan 2.2s ease-in-out infinite;
+  }
+
+  .animate-punto-1 {
+    animation: puntos-carga 1.4s ease-in-out infinite;
+  }
+
+  .animate-punto-2 {
+    animation: puntos-carga 1.4s ease-in-out 0.2s infinite;
+  }
+
+  .animate-punto-3 {
+    animation: puntos-carga 1.4s ease-in-out 0.4s infinite;
+  }
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-toast-in {
+    animation: toast-in 0.3s ease-out;
+  }
+}
