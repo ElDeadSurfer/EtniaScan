@@ -13,14 +13,35 @@ const CLASES_BTN_SECUNDARIO =
 const CLASES_CONTENEDOR_PANTALLA =
   'relative z-10 w-full min-w-0 max-w-md md:max-w-xl lg:max-w-2xl'
 
-const ENLACE_REPORTE_DEMO = 'https://etniascan.app/reporte/demo-7f3a9c2e'
-
 const NODOS_ESCANEO = [
   { id: 'frente', top: '20%', left: '50%', retraso: '0ms' },
   { id: 'nariz', top: '48%', left: '50%', retraso: '400ms' },
   { id: 'menton', top: '76%', left: '50%', retraso: '800ms' },
   { id: 'oreja', top: '44%', left: '24%', retraso: '200ms' },
   { id: 'mandibula', top: '62%', left: '74%', retraso: '600ms' },
+]
+
+const CONSEJOS_CARGA = [
+  {
+    titulo: 'Foto de perfil estricta',
+    texto:
+      'Para un análisis preciso de los ángulos faciales, usa una toma completamente de perfil (lateral).',
+  },
+  {
+    titulo: 'Iluminación clara',
+    texto:
+      'Asegúrate de que tu rostro esté bien iluminado y se distingan claramente las líneas de la nariz, mentón y oreja.',
+  },
+  {
+    titulo: 'Fondo neutro',
+    texto:
+      'De ser posible, usa un fondo liso para evitar interferencias en el rastreo de los nodos vectoriales.',
+  },
+  {
+    titulo: 'Sin accesorios',
+    texto:
+      'Retira gorras, lentes o elementos que cubran las facciones clave del rostro.',
+  },
 ]
 
 const RESULTADOS = [
@@ -43,6 +64,244 @@ const RESULTADOS = [
     detalle: 'Anchura de base craneal',
   },
 ]
+
+const COLORES_REPORTE = {
+  oscuro: '#1C1612',
+  oscuro50: '#2A231E',
+  oscuro100: '#15100D',
+  cobre: '#B87333',
+  cobreLight: '#D4925A',
+  arena: '#E8DCC8',
+  arenaLight: '#F5EFE6',
+  arenaDark: '#C4B59A',
+}
+
+const REPORTE_CANVAS = { ancho: 1080, alto: 1920 }
+
+function trazarRectRedondeado(ctx, x, y, ancho, alto, radio) {
+  const r = Math.min(radio, ancho / 2, alto / 2)
+  ctx.beginPath()
+  ctx.moveTo(x + r, y)
+  ctx.lineTo(x + ancho - r, y)
+  ctx.quadraticCurveTo(x + ancho, y, x + ancho, y + r)
+  ctx.lineTo(x + ancho, y + alto - r)
+  ctx.quadraticCurveTo(x + ancho, y + alto, x + ancho - r, y + alto)
+  ctx.lineTo(x + r, y + alto)
+  ctx.quadraticCurveTo(x, y + alto, x, y + alto - r)
+  ctx.lineTo(x, y + r)
+  ctx.quadraticCurveTo(x, y, x + r, y)
+  ctx.closePath()
+}
+
+function textoEnLineas(ctx, texto, anchoMax) {
+  const palabras = texto.split(' ')
+  const lineas = []
+  let linea = ''
+  for (const palabra of palabras) {
+    const prueba = `${linea}${palabra} `
+    if (ctx.measureText(prueba).width > anchoMax && linea) {
+      lineas.push(linea.trim())
+      linea = `${palabra} `
+    } else {
+      linea = prueba
+    }
+  }
+  if (linea.trim()) lineas.push(linea.trim())
+  return lineas
+}
+
+function cargarImagen(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error('No se pudo cargar la imagen'))
+    img.src = src
+  })
+}
+
+function dibujarImagenRedondeada(ctx, img, x, y, ancho, alto, radio) {
+  const escala = Math.max(ancho / img.width, alto / img.height)
+  const recorteAncho = ancho / escala
+  const recorteAlto = alto / escala
+  const origenX = (img.width - recorteAncho) / 2
+  const origenY = (img.height - recorteAlto) / 2
+
+  ctx.save()
+  trazarRectRedondeado(ctx, x, y, ancho, alto, radio)
+  ctx.clip()
+  ctx.drawImage(
+    img,
+    origenX,
+    origenY,
+    recorteAncho,
+    recorteAlto,
+    x,
+    y,
+    ancho,
+    alto,
+  )
+  ctx.restore()
+
+  ctx.strokeStyle = 'rgba(184, 115, 51, 0.55)'
+  ctx.lineWidth = 4
+  trazarRectRedondeado(ctx, x, y, ancho, alto, radio)
+  ctx.stroke()
+}
+
+function dibujarBarraCanvas(ctx, x, y, ancho, alto, porcentaje, destacado) {
+  trazarRectRedondeado(ctx, x, y, ancho, alto, alto / 2)
+  ctx.fillStyle = COLORES_REPORTE.oscuro100
+  ctx.fill()
+
+  const anchoFill = (ancho * porcentaje) / 100
+  if (anchoFill > 0) {
+    trazarRectRedondeado(ctx, x, y, anchoFill, alto, alto / 2)
+    ctx.fillStyle = destacado ? COLORES_REPORTE.cobreLight : COLORES_REPORTE.cobre
+    ctx.fill()
+  }
+}
+
+async function generarReporteImagen(previewUrl) {
+  const { ancho: W, alto: H } = REPORTE_CANVAS
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Canvas no disponible')
+
+  const margen = 72
+  const anchoContenido = W - margen * 2
+
+  const fondo = ctx.createLinearGradient(0, 0, 0, H)
+  fondo.addColorStop(0, COLORES_REPORTE.oscuro50)
+  fondo.addColorStop(0.45, COLORES_REPORTE.oscuro)
+  fondo.addColorStop(1, COLORES_REPORTE.oscuro100)
+  ctx.fillStyle = fondo
+  ctx.fillRect(0, 0, W, H)
+
+  const brillo = ctx.createRadialGradient(W / 2, 0, 0, W / 2, 0, W * 0.75)
+  brillo.addColorStop(0, 'rgba(184, 115, 51, 0.28)')
+  brillo.addColorStop(1, 'transparent')
+  ctx.fillStyle = brillo
+  ctx.fillRect(0, 0, W, H * 0.45)
+
+  trazarRectRedondeado(ctx, margen / 2, margen / 2, W - margen, H - margen, 36)
+  ctx.strokeStyle = 'rgba(184, 115, 51, 0.35)'
+  ctx.lineWidth = 3
+  ctx.stroke()
+
+  let y = 140
+
+  ctx.textAlign = 'center'
+  ctx.fillStyle = COLORES_REPORTE.arenaLight
+  ctx.font = '700 42px Georgia, "Times New Roman", serif'
+  const lineasTitulo = textoEnLineas(
+    ctx,
+    'EtniaScan - Reporte de Afinidad Antropológica',
+    anchoContenido - 40,
+  )
+  for (const linea of lineasTitulo) {
+    ctx.fillText(linea, W / 2, y)
+    y += 52
+  }
+
+  y += 24
+  ctx.strokeStyle = 'rgba(196, 181, 154, 0.35)'
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  ctx.moveTo(margen + 40, y)
+  ctx.lineTo(W - margen - 40, y)
+  ctx.stroke()
+  y += 48
+
+  if (previewUrl) {
+    const foto = await cargarImagen(previewUrl)
+    const tamFoto = 340
+    const fotoX = (W - tamFoto) / 2
+    dibujarImagenRedondeada(ctx, foto, fotoX, y, tamFoto, tamFoto, 24)
+    y += tamFoto + 56
+  }
+
+  ctx.textAlign = 'left'
+  for (const [index, item] of RESULTADOS.entries()) {
+    const destacado = index === 0
+    const altoTarjeta = 200
+
+    trazarRectRedondeado(ctx, margen, y, anchoContenido, altoTarjeta, 20)
+    ctx.fillStyle = destacado
+      ? 'rgba(184, 115, 51, 0.18)'
+      : 'rgba(42, 35, 30, 0.85)'
+    ctx.fill()
+    ctx.strokeStyle = destacado
+      ? 'rgba(184, 115, 51, 0.45)'
+      : 'rgba(196, 181, 154, 0.2)'
+    ctx.lineWidth = 2
+    ctx.stroke()
+
+    const px = margen + 28
+    let ty = y + 44
+
+    ctx.fillStyle = COLORES_REPORTE.arenaLight
+    ctx.font = '600 30px system-ui, "Segoe UI", sans-serif'
+    const lineasNombre = textoEnLineas(ctx, item.titulo, anchoContenido - 160)
+    for (const linea of lineasNombre) {
+      ctx.fillText(linea, px, ty)
+      ty += 34
+    }
+
+    ctx.fillStyle = COLORES_REPORTE.cobreLight
+    ctx.font = '400 24px system-ui, "Segoe UI", sans-serif'
+    ctx.fillText(item.subtitulo, px, ty + 8)
+    ty += 40
+
+    ctx.textAlign = 'right'
+    ctx.fillStyle = destacado ? COLORES_REPORTE.cobreLight : COLORES_REPORTE.arena
+    ctx.font = '700 40px Georgia, "Times New Roman", serif'
+    ctx.fillText(`${item.porcentaje}%`, W - margen - 28, y + 52)
+    ctx.textAlign = 'left'
+
+    dibujarBarraCanvas(ctx, px, y + altoTarjeta - 62, anchoContenido - 56, 14, item.porcentaje, destacado)
+
+    ctx.fillStyle = COLORES_REPORTE.arenaDark
+    ctx.font = 'italic 22px Georgia, "Times New Roman", serif'
+    const lineasDetalle = textoEnLineas(ctx, item.detalle, anchoContenido - 56)
+    ctx.fillText(lineasDetalle[0] ?? item.detalle, px, y + altoTarjeta - 28)
+
+    y += altoTarjeta + 22
+  }
+
+  ctx.textAlign = 'center'
+  ctx.fillStyle = COLORES_REPORTE.arenaDark
+  ctx.font = '400 22px system-ui, "Segoe UI", sans-serif'
+  ctx.fillText(
+    'Reporte orientativo · No sustituye estudios genéticos formales',
+    W / 2,
+    H - 88,
+  )
+  ctx.fillStyle = COLORES_REPORTE.cobre
+  ctx.font = '600 24px system-ui, "Segoe UI", sans-serif'
+  ctx.fillText('etniascan.app', W / 2, H - 52)
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(new Error('No se pudo generar la imagen'))
+          return
+        }
+        const url = URL.createObjectURL(blob)
+        const enlace = document.createElement('a')
+        enlace.href = url
+        enlace.download = 'Mi_Reporte_EtniaScan.png'
+        enlace.click()
+        URL.revokeObjectURL(url)
+        resolve()
+      },
+      'image/png',
+      1,
+    )
+  })
+}
 
 function FondoDecorativo() {
   return (
@@ -283,6 +542,47 @@ function VistaEscaneo({ preview, imagen }) {
   )
 }
 
+function ConsejosCarga() {
+  return (
+    <aside
+      className="mt-5 w-full rounded-xl border border-cobre/20 bg-oscuro-50/70 px-4 py-4 sm:mt-6 sm:px-5 sm:py-5"
+      aria-label="Consejos para un mejor análisis"
+    >
+      <div className="flex items-start gap-2.5 border-b border-arena-dark/20 pb-3">
+        <span
+          className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cobre-muted text-xs text-cobre-light"
+          aria-hidden="true"
+        >
+          i
+        </span>
+        <div>
+          <h3 className="text-sm font-medium text-arena-light sm:text-base">
+            Consejos para un mejor análisis
+          </h3>
+          <p className="mt-0.5 text-xs text-arena-dark sm:text-sm">
+            Sigue estas recomendaciones antes de analizar tu imagen.
+          </p>
+        </div>
+      </div>
+
+      <ul className="mt-4 space-y-3.5 sm:space-y-4">
+        {CONSEJOS_CARGA.map((consejo) => (
+          <li key={consejo.titulo} className="flex gap-2.5 sm:gap-3">
+            <span
+              className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-cobre-light"
+              aria-hidden="true"
+            />
+            <p className="min-w-0 text-sm leading-relaxed text-arena-muted">
+              <span className="font-medium text-arena">{consejo.titulo}:</span>{' '}
+              {consejo.texto}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  )
+}
+
 function PantallaCarga({
   imagen,
   preview,
@@ -397,6 +697,8 @@ function PantallaCarga({
               Cambiar imagen
             </button>
           )}
+
+          <ConsejosCarga />
         </>
       )}
 
@@ -440,23 +742,22 @@ function BarraSimilitud({ porcentaje, destacado }) {
 }
 
 function PantallaResultados({ preview, onVolverEmpezar }) {
-  const [toastCompartir, setToastCompartir] = useState(false)
+  const [descargando, setDescargando] = useState(false)
+  const [toastDescarga, setToastDescarga] = useState(null)
 
-  const onCompartir = async () => {
+  const onDescargarReporte = async () => {
+    if (!preview || descargando) return
+    setDescargando(true)
+    setToastDescarga(null)
     try {
-      await navigator.clipboard.writeText(ENLACE_REPORTE_DEMO)
+      await generarReporteImagen(preview)
+      setToastDescarga('ok')
     } catch {
-      const area = document.createElement('textarea')
-      area.value = ENLACE_REPORTE_DEMO
-      area.style.position = 'fixed'
-      area.style.left = '-9999px'
-      document.body.appendChild(area)
-      area.select()
-      document.execCommand('copy')
-      document.body.removeChild(area)
+      setToastDescarga('error')
+    } finally {
+      setDescargando(false)
+      setTimeout(() => setToastDescarga(null), 3200)
     }
-    setToastCompartir(true)
-    setTimeout(() => setToastCompartir(false), 3200)
   }
 
   return (
@@ -546,20 +847,30 @@ function PantallaResultados({ preview, onVolverEmpezar }) {
         </button>
         <button
           type="button"
-          onClick={onCompartir}
-          className={`sm:self-center ${CLASES_BTN_SECUNDARIO} sm:min-w-[220px]`}
+          disabled={!preview || descargando}
+          onClick={onDescargarReporte}
+          className={`sm:self-center ${CLASES_BTN_SECUNDARIO} sm:min-w-[260px]`}
         >
-          Compartir Reporte
+          {descargando ? 'Generando imagen…' : 'Descargar Reporte en Imagen'}
         </button>
       </div>
 
-      {toastCompartir && (
+      {toastDescarga === 'ok' && (
         <div
           role="status"
           aria-live="polite"
           className="animate-toast-in fixed bottom-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-xl border border-cobre/45 bg-oscuro-50 px-4 py-3.5 text-center text-sm font-medium text-arena-light shadow-xl shadow-oscuro-200/80 ring-1 ring-cobre/20"
         >
-          ¡Enlace de reporte copiado al portapapeles!
+          ¡Reporte descargado como Mi_Reporte_EtniaScan.png!
+        </div>
+      )}
+
+      {toastDescarga === 'error' && (
+        <div
+          role="alert"
+          className="animate-toast-in fixed bottom-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-xl border border-cobre/45 bg-oscuro-50 px-4 py-3.5 text-center text-sm font-medium text-arena-light shadow-xl shadow-oscuro-200/80 ring-1 ring-cobre/20"
+        >
+          No se pudo generar la imagen. Intenta de nuevo.
         </div>
       )}
     </main>
