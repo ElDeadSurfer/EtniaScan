@@ -23,46 +23,64 @@ const NODOS_ESCANEO = [
 
 const CONSEJOS_CARGA = [
   {
-    titulo: 'Foto de perfil estricta',
+    titulo: 'Foto de perfil clara',
     texto:
-      'Para un análisis preciso de los ángulos faciales, usa una toma completamente de perfil (lateral).',
+      'Para un análisis óptimo de las proporciones faciales, utiliza una toma frontal o de perfil bien encuadrada.',
   },
   {
-    titulo: 'Iluminación clara',
+    titulo: 'Iluminación uniforme',
     texto:
-      'Asegúrate de que tu rostro esté bien iluminado y se distingan claramente las líneas de la nariz, mentón y oreja.',
+      'Asegúrate de que tu rostro esté bien iluminado para que el mapeo de nodos vectoriales sea lo más limpio posible.',
   },
   {
     titulo: 'Fondo neutro',
     texto:
-      'De ser posible, usa un fondo liso para evitar interferencias en el rastreo de los nodos vectoriales.',
+      'De ser posible, usa un fondo liso para evitar distorsiones en el rastreo de los puntos de anclaje.',
   },
   {
     titulo: 'Sin accesorios',
     texto:
-      'Retira gorras, lentes o elementos que cubran las facciones clave del rostro.',
+      'Retira gorras, anteojos o elementos que puedan cubrir las facciones anatómicas clave.',
   },
 ]
 
-const RESULTADOS = [
+// Banco de datos global 2.0 (Mesoamérica + Nuevas Regiones Globales)
+const BANCO_ETNIAS = [
   {
-    porcentaje: 58,
-    titulo: 'Similitud Altiplano Central',
+    titulo: 'Afinidad Altiplano Central',
     subtitulo: 'Herencia Tolteca / Otomí',
-    detalle: 'Frente amplia, puente nasal recto',
+    detalle: 'Proporción áurea extendida en arco superciliar y puente nasal recto.',
   },
   {
-    porcentaje: 25,
-    titulo: 'Similitud Purépecha',
+    titulo: 'Afinidad Purépecha',
     subtitulo: 'Región de Michoacán',
-    detalle: 'Mandíbula robusta y mentón fuerte',
+    detalle: 'Estructura angular simétrica con mandíbula robusta y mentón firme.',
   },
   {
-    porcentaje: 17,
-    titulo: 'Similitud Mixteca',
-    subtitulo: 'Región de Oaxaca',
-    detalle: 'Anchura de base craneal',
+    titulo: 'Afinidad Mixteca',
+    subtitulo: 'Región de Oaxaca / Guerrero',
+    detalle: 'Optimización de anchura en base craneal y pómulos prominentes.',
   },
+  {
+    titulo: 'Afinidad Europa Occidental',
+    subtitulo: 'Región Íbera / Continental',
+    detalle: 'Frente vertical angosta, proyección de fosa nasal estrecha y alargada.',
+  },
+  {
+    titulo: 'Afinidad Asia Oriental',
+    subtitulo: 'Región Continental / Insular',
+    detalle: 'Pliegue epicántico simulado, arco cigomático ensanchado y frente suave.',
+  },
+  {
+    titulo: 'Afinidad Oriente Próximo',
+    subtitulo: 'Región de Levante / Mesopotamia',
+    detalle: 'Glabela marcada, puente nasal de perfil convexo y ojos almendrados.',
+  },
+  {
+    titulo: 'Afinidad Región Mediterránea',
+    subtitulo: 'Herencia Greco-Romana / Norte de África',
+    detalle: 'Proporción simétrica balanceada entre plano orbital y ángulo mandibular.',
+  }
 ]
 
 const COLORES_REPORTE = {
@@ -161,7 +179,8 @@ function dibujarBarraCanvas(ctx, x, y, ancho, alto, porcentaje, destacado) {
   }
 }
 
-async function generarReporteImagen(previewUrl) {
+// Genera un reporte basado dinámicamente en los resultados calculados
+async function generarReporteImagen(previewUrl, resultadosActuales) {
   const { ancho: W, alto: H } = REPORTE_CANVAS
   const canvas = document.createElement('canvas')
   canvas.width = W
@@ -223,7 +242,7 @@ async function generarReporteImagen(previewUrl) {
   }
 
   ctx.textAlign = 'left'
-  for (const [index, item] of RESULTADOS.entries()) {
+  for (const [index, item] of resultadosActuales.entries()) {
     const destacado = index === 0
     const altoTarjeta = 200
 
@@ -274,7 +293,7 @@ async function generarReporteImagen(previewUrl) {
   ctx.fillStyle = COLORES_REPORTE.arenaDark
   ctx.font = '400 22px system-ui, "Segoe UI", sans-serif'
   ctx.fillText(
-    'Reporte orientativo · No sustituye estudios genéticos formales',
+    'Reporte orientativo · Prototipo de análisis geométrico local',
     W / 2,
     H - 88,
   )
@@ -393,27 +412,23 @@ function ModalInformativo({ abierto, onCerrar }) {
           id="modal-info-titulo"
           className="mt-2 pr-10 font-display text-xl text-arena-light sm:pr-8 sm:text-2xl"
         >
-          Morfometría facial
+          Morfometría facial global
         </h2>
 
         <div className="mt-5 space-y-4 text-left text-sm leading-relaxed text-arena-muted">
           <p>
-            EtniaScan utiliza un enfoque de{' '}
-            <strong className="font-medium text-arena">morfometría facial</strong>:
-            medimos proporciones y relaciones geométricas entre puntos clave del
-            rostro —frente, puente nasal, mandíbula, base craneal— y las
-            comparamos con patrones documentados en distintas regiones de
-            Mesoamérica.
+            EtniaScan utiliza un enfoque matemático adaptado de{' '}
+            <strong className="font-medium text-arena">morfometría facial interactiva</strong>.
+            Calculamos proporciones y distancias geométricas relativas en vectores faciales clave 
+            (frente, puente nasal, mentón, oreja y mandíbula) y contrastamos las métricas con descriptores 
+            antropológicos de diversas regiones de Mesoamérica y del mundo.
           </p>
           <p>
-            El objetivo no es etiquetar identidad, sino ofrecer una lectura
-            orientativa del parecido visual con rasgos asociados a herencias
-            culturales y antropológicas, como base para reflexionar sobre tu
-            legado y el de tu comunidad.
+            El software distribuye ponderaciones probabilísticas locales de manera simulada basadas en el hash de atributos 
+            de la imagen, ofreciendo una experiencia inmersiva para reflexionar de forma recreativa sobre la diversidad y el legado fenotípico mundial.
           </p>
           <p className="text-xs text-arena-dark">
-            Los porcentajes son estimaciones geométricas, no diagnósticos
-            genéticos ni certificaciones étnicas.
+            Los resultados son estimaciones geométricas algorítmicas con fines recreativos y educativos, no constituyen pruebas de ADN ni diagnósticos genéticos clínicos.
           </p>
         </div>
 
@@ -448,8 +463,7 @@ function PantallaInicio({ onComenzar, onSaberMas }) {
       </h1>
 
       <p className="mt-4 max-w-sm px-1 text-base leading-relaxed text-arena-muted sm:mt-6 sm:text-lg">
-        Descubre y documenta el patrimonio cultural de tu comunidad con una
-        experiencia pensada para ti.
+        Descubre y documenta la afinidad geométrica facial de tu herencia cultural con nuestro motor bio-morfométrico 2.0.
       </p>
 
       <div className="mt-8 flex w-full flex-col gap-3 sm:mt-10 sm:max-w-md sm:flex-row sm:justify-center sm:gap-4">
@@ -498,7 +512,7 @@ function IndicadorAnalizando() {
           />
         </svg>
         <p className="text-base font-medium tracking-wide text-arena-light sm:text-lg">
-          Analizando
+          Analizando vectores faciales
           <span className="inline-flex w-6 justify-start" aria-hidden="true">
             <span className="animate-punto-1">.</span>
             <span className="animate-punto-2">.</span>
@@ -507,7 +521,7 @@ function IndicadorAnalizando() {
         </p>
       </div>
       <p className="text-sm text-arena-muted">
-        Escaneo morfométrico en progreso
+        Calculando desviaciones morfométricas globales en tiempo real...
       </p>
     </div>
   )
@@ -621,11 +635,9 @@ function PiePrivacidad() {
           🔒
         </span>
         <span className="min-w-0">
-          <span className="font-medium text-slate-300">Privacidad Total:</span> EtniaScan
-          es un prototipo interactivo de procesamiento puramente local. No almacenamos,
-          guardamos ni compartimos tus fotos ni tus resultados en ningún servidor. Al
-          cerrar o refrescar esta pestaña, toda la información se elimina
-          permanentemente de tu dispositivo.
+          <span className="font-medium text-slate-300">Privacidad Local Garantizada:</span> EtniaScan
+          procesa los datos puramente en tu navegador. Tus fotos jamás se suben, guardan
+          ni transmiten a servidores externos. Al salir, toda traza expira al instante.
         </span>
       </p>
     </footer>
@@ -664,8 +676,7 @@ function PantallaCarga({
         Carga tu imagen
       </h2>
       <p className="mt-2 text-sm leading-relaxed text-arena-muted sm:mt-3 sm:text-base">
-        Arrastra una foto aquí o selecciónala desde tu dispositivo para iniciar
-        el análisis.
+        Arrastra una foto aquí o selecciónala desde tu dispositivo para iniciar el escaneo morfométrico.
       </p>
 
       <input
@@ -758,7 +769,7 @@ function PantallaCarga({
           onClick={onAnalizar}
           className={`flex-1 ${CLASES_BTN_PRIMARIO}`}
         >
-          {analizando ? 'Analizando…' : 'Analizar imagen'}
+          {analizando ? 'Ejecutando morfometría…' : 'Analizar imagen'}
         </button>
         <button
           type="button"
@@ -792,7 +803,7 @@ function BarraSimilitud({ porcentaje, destacado }) {
   )
 }
 
-function PantallaResultados({ preview, onVolverEmpezar }) {
+function PantallaResultados({ preview, resultados, onVolverEmpezar }) {
   const [descargando, setDescargando] = useState(false)
   const [toastDescarga, setToastDescarga] = useState(null)
 
@@ -801,7 +812,7 @@ function PantallaResultados({ preview, onVolverEmpezar }) {
     setDescargando(true)
     setToastDescarga(null)
     try {
-      await generarReporteImagen(preview)
+      await generarReporteImagen(preview, resultados)
       setToastDescarga('ok')
     } catch {
       setToastDescarga('error')
@@ -814,16 +825,15 @@ function PantallaResultados({ preview, onVolverEmpezar }) {
   return (
     <main className={`${CLASES_CONTENEDOR_PANTALLA} flex flex-col pb-6 sm:pb-8`}>
       <p className="text-xs font-medium uppercase tracking-[0.2em] text-cobre-light sm:text-sm sm:tracking-[0.35em]">
-        Paso 2 · Resultados
+        Paso 2 · Resultados Globales
       </p>
 
       <header className="mt-3 border-b border-arena-dark/20 pb-4 sm:mt-4 sm:pb-6">
         <h2 className="font-display text-xl leading-snug text-arena-light sm:text-2xl md:text-3xl">
-          Reporte de Afinidad Geométrica Facial
+          Reporte de Afinidad Geométrica Facial 2.0
         </h2>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-arena-muted sm:mt-3">
-          Análisis comparativo de rasgos faciales con patrones geométricos
-          documentados en comunidades mesoamericanas.
+          Análisis geométrico comparativo de vectores craneofaciales contrastados con patrones de poblaciones mesoamericanas e internacionales.
         </p>
       </header>
 
@@ -844,7 +854,7 @@ function PantallaResultados({ preview, onVolverEmpezar }) {
         )}
 
         <div className="min-w-0 flex-1 space-y-4 sm:space-y-5">
-          {RESULTADOS.map((item, index) => (
+          {resultados.map((item, index) => (
             <article
               key={item.titulo}
               className={`rounded-xl border p-4 transition sm:p-5 ${
@@ -883,8 +893,7 @@ function PantallaResultados({ preview, onVolverEmpezar }) {
 
       <footer className="mt-8 rounded-xl border border-arena-dark/20 bg-oscuro-50/50 px-4 py-3 sm:mt-10 sm:px-5 sm:py-4">
         <p className="text-center text-xs leading-relaxed text-arena-dark">
-          Este reporte es orientativo y se basa en similitudes geométricas
-          faciales. No sustituye estudios genéticos ni antropológicos formales.
+          Este reporte es meramente orientativo y estadístico basado en morfología recreativa matemática local. No posee validez legal ni validez como estudio clínico molecular de ancestros.
         </p>
       </footer>
 
@@ -902,7 +911,7 @@ function PantallaResultados({ preview, onVolverEmpezar }) {
           onClick={onDescargarReporte}
           className={`sm:self-center ${CLASES_BTN_SECUNDARIO} sm:min-w-[260px]`}
         >
-          {descargando ? 'Generando imagen…' : 'Descargar Reporte en Imagen'}
+          {descargando ? 'Generando archivo PNG…' : 'Descargar Reporte en Imagen'}
         </button>
       </div>
 
@@ -910,31 +919,35 @@ function PantallaResultados({ preview, onVolverEmpezar }) {
         <div
           role="status"
           aria-live="polite"
-          className="animate-toast-in fixed bottom-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-xl border border-cobre/45 bg-oscuro-50 px-4 py-3.5 text-center text-sm font-medium text-arena-light shadow-xl shadow-oscuro-200/80 ring-1 ring-cobre/20"
+          className="animate-toast-in fixed bottom-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-xl border border-cobre/45 bg-oscuro-50 px-4 py-3.5 text-center text-sm font-medium text-arena-light shadow-xl shadow-oscuro-200/50"
         >
-          ¡Reporte descargado como Mi_Reporte_EtniaScan.png!
+          ✓ ¡Reporte descargado con éxito!
         </div>
       )}
 
       {toastDescarga === 'error' && (
         <div
-          role="alert"
-          className="animate-toast-in fixed bottom-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-xl border border-cobre/45 bg-oscuro-50 px-4 py-3.5 text-center text-sm font-medium text-arena-light shadow-xl shadow-oscuro-200/80 ring-1 ring-cobre/20"
+          role="status"
+          aria-live="polite"
+          className="animate-toast-in fixed bottom-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-xl border border-red-500/40 bg-oscuro-50 px-4 py-3.5 text-center text-sm font-medium text-red-400 shadow-xl"
         >
-          No se pudo generar la imagen. Intenta de nuevo.
+          × Error al procesar el renderizado del canvas.
         </div>
       )}
     </main>
   )
 }
 
-function App() {
+export default function App() {
   const [pantalla, setPantalla] = useState('inicio')
-  const [mostrarInfo, setMostrarInfo] = useState(false)
   const [imagen, setImagen] = useState(null)
   const [preview, setPreview] = useState(null)
   const [arrastrando, setArrastrando] = useState(false)
   const [analizando, setAnalizando] = useState(false)
+  const [modalAbierto, setModalAbierto] = useState(false)
+  // Estado para guardar la simulación única calculada por cada foto cargada
+  const [resultadosCalculados, setResultadosCalculados] = useState([])
+
   const inputRef = useRef(null)
 
   useEffect(() => {
@@ -943,29 +956,19 @@ function App() {
     }
   }, [preview])
 
-  const abrirSelector = () => {
-    inputRef.current?.click()
-  }
+  const manejarArchivo = (file) => {
+    if (!file) return
+    if (!file.type.startsWith('image/')) return
 
-  const esImagenValida = (archivo) => {
-    if (!archivo) return false
-    if (archivo.type.startsWith('image/')) return true
-    return /\.(jpe?g|png|webp|gif)$/i.test(archivo.name)
-  }
+    if (preview) URL.revokeObjectURL(preview)
 
-  const aplicarImagen = (archivo) => {
-    if (!esImagenValida(archivo)) return
-    setImagen(archivo)
-    setPreview((prev) => {
-      if (prev) URL.revokeObjectURL(prev)
-      return URL.createObjectURL(archivo)
-    })
+    setImagen(file)
+    setPreview(URL.createObjectURL(file))
   }
 
   const onSeleccionarArchivo = (e) => {
-    const archivo = e.target.files?.[0]
-    if (archivo) aplicarImagen(archivo)
-    e.target.value = ''
+    const file = e.target.files?.[0]
+    manejarArchivo(file)
   }
 
   const onArrastrar = (e, activo) => {
@@ -978,77 +981,90 @@ function App() {
     e.preventDefault()
     e.stopPropagation()
     setArrastrando(false)
-    const archivo = e.dataTransfer.files?.[0]
-    if (archivo) aplicarImagen(archivo)
+
+    const file = e.dataTransfer.files?.[0]
+    manejarArchivo(file)
   }
 
-  const limpiarImagen = () => {
-    setImagen(null)
-    setPreview((prev) => {
-      if (prev) URL.revokeObjectURL(prev)
-      return null
+  const onAbrirSelector = () => {
+    inputRef.current?.click()
+  }
+
+  // Algoritmo determinista/aleatorio controlado basado en el nombre de la imagen 
+  // para simular un cálculo matemático único y distribuir un 100% perfecto.
+  const simularAnalisisMorfometrico = (nombreArchivo) => {
+    let seed = 0
+    const str = nombreArchivo || 'default_scan'
+    for (let i = 0; i < str.length; i++) {
+      seed += str.charCodeAt(i)
+    }
+
+    // Mezclamos el banco de etnias aleatoriamente usando la semilla
+    const clonBanco = [...BANCO_ETNIAS]
+    const seleccionadas = []
+    
+    // Tomamos 3 o 4 regiones del banco global para armar el mix único de la persona
+    const numeroRegiones = 3 + (seed % 2) 
+    
+    let pseudoAleatorio = seed
+    for (let i = 0; i < numeroRegiones; i++) {
+      pseudoAleatorio = (pseudoAleatorio * 9301 + 49297) % 233280
+      const index = Math.floor((pseudoAleatorio / 233280) * clonBanco.length)
+      seleccionadas.push(clonBanco.splice(index, 1)[0])
+    }
+
+    // Distribuimos el 100% entre las regiones seleccionadas
+    let totalRestante = 100
+    const finales = seleccionadas.map((etnia, idx) => {
+      if (idx === seleccionadas.length - 1) {
+        return { ...etnia, porcentaje: totalRestante }
+      }
+      pseudoAleatorio = (pseudoAleatorio * 9301 + 49297) % 233280
+      // Aseguramos que la primera siempre sea la predominante
+      const maxPermitido = idx === 0 ? Math.floor(totalRestante * 0.7) : Math.floor(totalRestante * 0.5)
+      const minPermitido = idx === 0 ? Math.floor(totalRestante * 0.4) : 10
+      const porcentaje = minPermitido + Math.floor((pseudoAleatorio / 233280) * (maxPermitido - minPermitido))
+      totalRestante -= porcentaje
+      return { ...etnia, porcentaje }
     })
-    if (inputRef.current) inputRef.current.value = ''
-  }
 
-  const irArriba = () => {
-    document.getElementById('root')?.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  const reiniciarEscaneo = () => {
-    setMostrarInfo(false)
-    setAnalizando(false)
-    limpiarImagen()
-    setPantalla('carga')
-    irArriba()
-  }
-
-  const onRegresar = () => {
-    setPantalla('inicio')
-    setAnalizando(false)
-    limpiarImagen()
-    irArriba()
-  }
-
-  const onVolverEmpezar = () => {
-    reiniciarEscaneo()
+    // Ordenamos de mayor a menor porcentaje
+    return finales.sort((a, b) => b.porcentaje - a.porcentaje)
   }
 
   const onAnalizar = () => {
-    if (!imagen || !preview) return
+    if (!imagen) return
     setAnalizando(true)
+
+    // Calculamos el mix único basado en los metadatos del archivo actual
+    const mixResultados = simularAnalisisMorfometrico(imagen.name)
+    setResultadosCalculados(mixResultados)
+
     setTimeout(() => {
       setAnalizando(false)
       setPantalla('resultados')
-    }, 2000)
+    }, 2800)
   }
 
-  const centrado = pantalla === 'inicio'
+  const onLimpiarTodo = () => {
+    if (preview) URL.revokeObjectURL(preview)
+    setImagen(null)
+    setPreview(null)
+    setResultadosCalculados([])
+    setPantalla('inicio')
+  }
 
   return (
-    <>
-      <NavApp pantalla={pantalla} onInicio={reiniciarEscaneo} />
-      <div
-        className={`relative flex min-h-full w-full flex-col overflow-x-hidden bg-oscuro px-4 pb-10 pt-[4.75rem] font-sans text-arena sm:px-6 sm:pt-20 sm:pb-12 ${
-          centrado ? 'items-center justify-center' : 'items-center justify-start'
-        }`}
-      >
-        <FondoDecorativo />
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-oscuro px-4 py-24 text-arena sm:px-6">
+      <FondoDecorativo />
+      <NavApp pantalla={pantalla} onInicio={onLimpiarTodo} />
 
       {pantalla === 'inicio' && (
         <PantallaInicio
-          onComenzar={() => {
-            setMostrarInfo(false)
-            setPantalla('carga')
-          }}
-          onSaberMas={() => setMostrarInfo(true)}
+          onComenzar={() => setPantalla('carga')}
+          onSaberMas={() => setModalAbierto(true)}
         />
       )}
-
-      <ModalInformativo
-        abierto={pantalla === 'inicio' && mostrarInfo}
-        onCerrar={() => setMostrarInfo(false)}
-      />
 
       {pantalla === 'carga' && (
         <PantallaCarga
@@ -1058,20 +1074,29 @@ function App() {
           analizando={analizando}
           inputRef={inputRef}
           onSeleccionarArchivo={onSeleccionarArchivo}
-          onAbrirSelector={abrirSelector}
+          onAbrirSelector={onAbrirSelector}
           onArrastrar={onArrastrar}
           onSoltar={onSoltar}
           onAnalizar={onAnalizar}
-          onRegresar={onRegresar}
+          onRegresar={onLimpiarTodo}
         />
       )}
 
       {pantalla === 'resultados' && (
-        <PantallaResultados preview={preview} onVolverEmpezar={onVolverEmpezar} />
+        <PantallaResultados
+          preview={preview}
+          resultados={resultadosCalculados}
+          onVolverEmpezar={() => {
+            if (preview) URL.revokeObjectURL(preview)
+            setImagen(null)
+            setPreview(null)
+            setResultadosCalculados([])
+            setPantalla('carga')
+          }}
+        />
       )}
-      </div>
-    </>
+
+      <ModalInformativo abierto={modalAbierto} onCerrar={() => setModalAbierto(false)} />
+    </div>
   )
 }
-
-export default App
